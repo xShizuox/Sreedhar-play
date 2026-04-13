@@ -1,0 +1,23 @@
+.env
+__pycache__/
+*.pyc
+instance/
+venv/
+env/
+
+# SQLite databases
+*.db
+*.sqlite3
+
+# User-uploaded media files (can be large, not version controlled)
+static/music/
+static/cover_art/
+static/profile_pics/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# IDE config
+.vscode/
+.idea/

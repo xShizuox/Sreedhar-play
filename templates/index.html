@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-header">
+    <h1><i class="fa-solid fa-music" style="color:var(--accent); margin-right:0.5rem; font-size:0.85em;"></i><span class="gradient-text">Sreedhar</span> Play</h1>
+</div>
+
+<!-- Search Bar -->
+<div class="search-bar-wrapper" style="position: relative; z-index: 100;">
+    <div class="search-bar-inner">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input
+            type="text"
+            id="song-search-input"
+            class="song-search-input"
+            placeholder="Search songs, artists, users, playlists…"
+            autocomplete="off"
+            spellcheck="false"
+        >
+        <button id="search-clear-btn" class="search-clear-btn" aria-label="Clear search" style="display:none;">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+    <div id="search-dropdown" class="search-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: 12px; margin-top: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(16px); padding: 10px; max-height: 400px; overflow-y: auto;">
+        <div id="search-results-container"></div>
+    </div>
+</div>
+
+<div class="feed-tabs">
+    <a href="{{ url_for('home', feed='global') }}" class="feed-tab {% if feed_type == 'global' %}active{% endif %}">Global Feed</a>
+    <a href="{{ url_for('home', feed='following') }}" class="feed-tab {% if feed_type == 'following' %}active{% endif %}">Following</a>
+</div>
+
+<div class="glass-container">
+    <div class="songs-grid" id="songs-grid">
+        {% for song in songs %}
+        <div class="song-card"
+             data-index="{{ loop.index0 }}"
+             data-song-id="{{ song.id }}"
+             data-title="{{ song.title | lower }}"
+             data-artist="{{ song.artist | lower }}">
+            <div class="cover-wrapper">
+                <img src="{{ url_for('static', filename='cover_art/' + song.cover_image) }}" alt="Cover Art">
+                <div class="play-overlay">
+                    <button class="play-mini-btn" title="Play Now"><i class="fa-solid fa-play"></i></button>
+                    <button class="queue-add-btn" title="Add to Queue" data-index="{{ loop.index0 }}"><i class="fa-solid fa-plus"></i></button>
+                    <button class="playlist-add-btn" title="Add to Playlist" data-song-id="{{ song.id }}"><i class="fa-solid fa-list-check"></i></button>
+                    <button class="card-like-btn" title="Like Song" data-index="{{ loop.index0 }}">
+                        <i class="{% if music_data[loop.index0]['is_liked'] %}fa-solid fa-heart liked{% else %}fa-regular fa-heart{% endif %}"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="song-info">
+                <h3>{{ song.title }}</h3>
+                <p>{{ song.artist }}</p>
+                <small>By <a href="{{ url_for('user_profile', username=song.uploader.username) }}" class="uploader-link">{{ song.uploader.username }}</a>
+                    <span class="card-badges">
+                        <span class="play-count-badge"><i class="fa-solid fa-play"></i> {{ music_data[loop.index0]['play_count'] }}</span>
+                        <span class="quality-badge">{{ song.quality }}</span>
+                    </span>
+                </small>
+            </div>
+        </div>
+        {% else %}
+        <div class="no-songs" id="no-songs-initial">
+            <i class="fa-solid fa-music fa-3x"></i>
+            <p>No songs found. Be the first to <a href="{{ url_for('upload_song') }}">upload</a> something!</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Empty state shown when search has no results -->
+    <div id="search-empty-state" class="no-songs" style="display:none;">
+        <i class="fa-solid fa-magnifying-glass fa-3x"></i>
+        <p id="search-empty-text">No results for "<span id="search-empty-query"></span>"</p>
+    </div>
+</div>
+
+    <script id="music-data" type="application/json">
+        {{ music_data | tojson | safe }}
+    </script>
+    <script>
+        // System SPA Audio Hydration Engine Mapping
+        window.MUSIC_DATA = JSON.parse(document.getElementById('music-data').textContent);
+    </script>
+
+{% endblock %}
+

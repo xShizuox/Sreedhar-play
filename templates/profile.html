@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- ═══════════════════════════════════════════
+     PROFILE HERO
+═══════════════════════════════════════════ -->
+<div class="prof-hero">
+    <div class="prof-hero-bg"></div>
+    <div class="prof-hero-inner">
+        <!-- Avatar -->
+        <div class="prof-avatar-ring">
+            <img src="{{ url_for('static', filename='profile_pics/' + current_user.image_file) }}"
+                 alt="Avatar" class="prof-avatar-img">
+            <label for="profile_pic_input" class="prof-avatar-edit" title="Change avatar">
+                <i class="fa-solid fa-camera"></i>
+            </label>
+        </div>
+
+        <!-- Info -->
+        <div class="prof-info">
+            <span class="prof-label">Profile</span>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <h1 class="prof-username" style="margin:0;">{{ current_user.username }}</h1>
+                <button class="edit-profile-btn" onclick="let m = document.getElementById('edit-profile-modal'); m.style.display='flex'; setTimeout(() => m.classList.add('active'), 10);" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s ease;">
+                    Edit Profile
+                </button>
+            </div>
+            {% if current_user.bio %}
+            <p class="prof-bio" style="margin: 0.5rem 0 0 0; color: rgba(255,255,255,0.7); max-width: 600px; line-height: 1.5; font-size: 0.95rem;">{{ current_user.bio }}</p>
+            {% endif %}
+            {% if current_user.bio %}
+            <div class="prof-stats" style="margin-top: 0.5rem;">
+            {% else %}
+            <div class="prof-stats" style="margin-top: 1rem;">
+            {% endif %}
+                <span><strong>{{ songs|length }}</strong> Uploads</span>
+                <span class="prof-dot">·</span>
+                <span><strong>{{ liked_songs|length }}</strong> Liked</span>
+                <span class="prof-dot">·</span>
+                <span><strong>{{ current_user.email }}</strong></span>
+            </div>
+        </div>
+
+        <!-- Hidden avatar form -->
+        <form method="POST" action="" enctype="multipart/form-data" id="avatar-form" style="display:none;">
+            <input type="file" name="profile_pic" id="profile_pic_input"
+                   accept=".jpg,.jpeg,.png,.svg" onchange="document.getElementById('avatar-form').submit()">
+        </form>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     LIBRARY FOLDER CARDS
+═══════════════════════════════════════════ -->
+<div class="library-section">
+    <h2 class="library-title">Your Library</h2>
+    <div class="library-folders">
+
+        <!-- Uploads folder -->
+        <button class="folder-card {% if songs %}{% endif %}" id="folder-uploads" data-target="panel-uploads">
+            <div class="folder-icon-wrap" style="background: linear-gradient(135deg,#8b5cf6,#6366f1);">
+                <i class="fa-solid fa-music"></i>
+            </div>
+            <div class="folder-meta">
+                <span class="folder-name">Uploaded Songs</span>
+                <span class="folder-count">{{ songs|length }} song{{ 's' if songs|length != 1 }}</span>
+            </div>
+            <i class="fa-solid fa-chevron-right folder-chevron"></i>
+        </button>
+
+        <!-- Liked Songs folder -->
+        <button class="folder-card" id="folder-liked" data-target="panel-liked">
+            <div class="folder-icon-wrap" style="background: linear-gradient(135deg,#ef4444,#dc2626);">
+                <i class="fa-solid fa-heart"></i>
+            </div>
+            <div class="folder-meta">
+                <span class="folder-name">Liked Songs</span>
+                <span class="folder-count">{{ liked_songs|length }} song{{ 's' if liked_songs|length != 1 }}</span>
+            </div>
+            <i class="fa-solid fa-chevron-right folder-chevron"></i>
+        </button>
+
+        <!-- Recently Played folder -->
+        <button class="folder-card" id="folder-recent" data-target="panel-recent">
+            <div class="folder-icon-wrap" style="background: linear-gradient(135deg,#10b981,#059669);">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div class="folder-meta">
+                <span class="folder-name">Recently Played</span>
+                <span class="folder-count">10 songs</span>
+            </div>
+            <i class="fa-solid fa-chevron-right folder-chevron"></i>
+        </button>
+
+        <!-- Create Playlist Quick Action -->
+        <button class="folder-card create-playlist-card" id="btn-create-playlist-trigger">
+            <div class="folder-icon-wrap" style="background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); color: var(--accent);">
+                <i class="fa-solid fa-plus"></i>
+            </div>
+            <div class="folder-meta">
+                <span class="folder-name">New Playlist</span>
+                <span class="folder-count">Create collection</span>
+            </div>
+        </button>
+
+        <!-- Dynamic User Playlists -->
+        {% for pl in user_playlists %}
+        <button class="folder-card folder-playlist" data-playlist-id="{{ pl.id }}">
+            <div class="folder-icon-wrap folder-icon">
+                {% if pl.songs|length >= 4 %}
+                <div class="playlist-collage">
+                    {% for s in pl.songs[:4] %}
+                    <img src="{{ url_for('static', filename='cover_art/' + s.cover_image) }}" alt="">
+                    {% endfor %}
+                </div>
+                {% elif pl.songs|length > 0 %}
+                <img src="{{ url_for('static', filename='cover_art/' + pl.songs[0].cover_image) }}" class="playlist-single-cover" alt="">
+                {% else %}
+                <i class="fa-solid fa-list-ul"></i>
+                {% endif %}
+            </div>
+            <div class="folder-meta">
+                <span class="folder-name">{{ pl.name }}</span>
+                <span class="folder-count">{{ pl.songs|length }} song{{ 's' if pl.songs|length != 1 }}</span>
+            </div>
+            <i class="fa-solid fa-chevron-right folder-chevron"></i>
+        </button>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     TRACK LIST PANELS
+═══════════════════════════════════════════ -->
+
+<!-- Panel: Uploaded Songs -->
+<div class="track-panel" id="panel-uploads">
+    <div class="track-panel-header">
+        <span class="track-panel-title"><i class="fa-solid fa-music"></i> Uploaded Songs</span>
+        <button class="track-panel-close" data-panel="panel-uploads"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    {% if songs %}
+    <div class="track-list" id="track-list-uploads">
+        {% for song in songs %}
+        <div class="track-row upload-card-item"
+             data-index="{{ loop.index0 + recent_songs|length + liked_songs|length }}"
+             data-song-id="{{ song.id }}">
+            <span class="track-num">{{ loop.index }}</span>
+            <img src="{{ url_for('static', filename='cover_art/' + song.cover_image) }}"
+                 class="track-thumb" alt="cover">
+            <div class="track-details">
+                <span class="track-title">{{ song.title }}</span>
+                <span class="track-artist">{{ song.artist }}</span>
+            </div>
+            <span class="track-quality quality-badge">{{ song.quality }}</span>
+            <span class="track-plays">
+                <i class="fa-solid fa-play"></i>
+                {{ music_data[loop.index0 + recent_songs|length + liked_songs|length]['play_count'] }}
+            </span>
+            <!-- ⋮ Options -->
+            <div class="song-options-wrapper">
+                <button class="song-options-btn" title="Options" data-song-id="{{ song.id }}">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </button>
+                <div class="song-options-menu" id="options-menu-{{ song.id }}">
+                    <button class="options-menu-item options-delete-btn" data-song-id="{{ song.id }}">
+                        <i class="fa-solid fa-trash"></i> Delete Song
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="track-empty">
+        <i class="fa-solid fa-compact-disc fa-2x"></i>
+        <p>No uploads yet. <a href="{{ url_for('upload_song') }}">Upload your first track!</a></p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Panel: Liked Songs -->
+<div class="track-panel" id="panel-liked">
+    <div class="track-panel-header">
+        <span class="track-panel-title"><i class="fa-solid fa-heart"></i> Liked Songs</span>
+        <button class="track-panel-close" data-panel="panel-liked"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    {% if liked_songs %}
+    <div class="track-list">
+        {% for song in liked_songs %}
+        <div class="track-row" data-index="{{ loop.index0 }}">
+            <span class="track-num">{{ loop.index }}</span>
+            <img src="{{ url_for('static', filename='cover_art/' + song.cover_image) }}"
+                 class="track-thumb" alt="cover">
+            <div class="track-details">
+                <span class="track-title">{{ song.title }}</span>
+                <span class="track-artist">{{ song.artist }}</span>
+            </div>
+            <span class="track-quality quality-badge">{{ song.quality }}</span>
+            <span class="track-plays">
+                <i class="fa-solid fa-play"></i>
+                {{ music_data[loop.index0]['play_count'] }}
+            </span>
+            <button class="track-like-btn" data-index="{{ loop.index0 }}">
+                <i class="fa-solid fa-heart liked"></i>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="track-empty">
+        <i class="fa-solid fa-heart-crack fa-2x"></i>
+        <p>No liked songs yet — heart a track on the home feed!</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Panel: Recently Played -->
+<div class="track-panel" id="panel-recent">
+    <div class="track-panel-header">
+        <span class="track-panel-title"><i class="fa-solid fa-clock-rotate-left"></i> Recently Played</span>
+        <button class="track-panel-close" data-panel="panel-recent"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    {% if recent_songs %}
+    <div class="track-list">
+        {% for song in recent_songs %}
+        <div class="track-row" data-index="{{ loop.index0 + liked_songs|length }}">
+            <span class="track-num">{{ loop.index }}</span>
+            <img src="{{ url_for('static', filename='cover_art/' + song.cover_image) }}"
+                 class="track-thumb" alt="cover">
+            <div class="track-details">
+                <span class="track-title">{{ song.title }}</span>
+                <span class="track-artist">{{ song.artist }}</span>
+            </div>
+            <span class="track-quality quality-badge">{{ song.quality }}</span>
+            <span class="track-plays">
+                <i class="fa-solid fa-play"></i>
+                {{ music_data[loop.index0 + liked_songs|length]['play_count'] }}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="track-empty">
+        <i class="fa-solid fa-clock fa-2x"></i>
+        <p>Nothing played yet — go discover some music!</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Panel: Playlist Details (Dynamic) -->
+<div class="track-panel" id="panel-playlist-detail">
+    <div class="track-panel-header">
+        <span class="track-panel-title" id="playlist-detail-title"><i class="fa-solid fa-list-ul"></i> Playlist</span>
+        <div style="display: flex; gap: 10px;">
+            <button class="options-menu-item" id="btn-delete-current-playlist" style="color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05); padding: 5px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer;"><i class="fa-solid fa-trash-can"></i> Delete List</button>
+            <button class="track-panel-close" data-panel="panel-playlist-detail"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+    <div id="playlist-detail-content" class="track-list">
+        <!-- Songs populated via JS -->
+    </div>
+    <div id="playlist-detail-empty" class="track-empty" style="display:none;">
+        <i class="fa-solid fa-folder-open fa-2x"></i>
+        <p>This playlist is empty. Add some tracks from the home feed!</p>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     EDIT PROFILE MODAL
+═══════════════════════════════════════════ -->
+<div id="edit-profile-modal" class="delete-modal-overlay" style="display:none; z-index: 1000;">
+    <div class="delete-modal-box premium-glass-box" style="text-align: left; padding: 2.5rem; max-width: 450px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="margin: 0; font-size: 1.5rem; font-weight: 700; background: linear-gradient(to right, #fff, #a8c0ff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Edit Profile</h3>
+            <button type="button" onclick="let m = document.getElementById('edit-profile-modal'); m.classList.remove('active'); setTimeout(() => m.style.display='none', 300);" style="background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 1.2rem; transition: color 0.2s;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <!-- Interactive Avatar Preview -->
+        <div class="modal-avatar-preview" onclick="document.getElementById('profile_pic_input').click()" title="Click to change profile picture">
+            <img src="{{ url_for('static', filename='profile_pics/' + (current_user.image_file if current_user.image_file else 'default.png')) }}" alt="Avatar Preview">
+            <div class="modal-avatar-overlay">
+                <i class="fa-solid fa-camera"></i>
+            </div>
+        </div>
+        
+        <form method="POST" action="">
+            <input type="hidden" name="update_profile" value="1">
+            
+            <div class="floating-group">
+                <input type="text" id="username" name="username" class="floating-input" value="{{ current_user.username }}" placeholder=" " required>
+                <label for="username" class="floating-label">Username</label>
+            </div>
+            
+            <div class="floating-group">
+                <input type="email" id="email" name="email" class="floating-input" value="{{ current_user.email }}" placeholder=" " required>
+                <label for="email" class="floating-label">Email Address</label>
+            </div>
+
+            <div class="floating-group" style="margin-bottom: 0;">
+                <textarea id="bio" name="bio" rows="3" class="floating-input" placeholder=" " style="resize: vertical;">{{ current_user.bio or '' }}</textarea>
+                <label for="bio" class="floating-label">Bio (Tell us about yourself)</label>
+            </div>
+
+            <div class="danger-zone">
+                <div class="danger-zone-text">
+                    <h4><i class="fa-solid fa-bomb" style="margin-right: 6px;"></i> Self-Destruct Sequence</h4>
+                    <p>Permanently remove your account</p>
+                </div>
+                <button type="button" onclick="let em = document.getElementById('edit-profile-modal'); em.classList.remove('active'); setTimeout(() => { em.style.display='none'; let d = document.getElementById('delete-account-modal'); d.style.display='flex'; setTimeout(()=>d.classList.add('active'), 10); }, 300);" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s ease;">Delete...</button>
+            </div>
+            
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 1.5rem;">
+                <button type="button" onclick="let m = document.getElementById('edit-profile-modal'); m.classList.remove('active'); setTimeout(() => m.style.display='none', 300);" class="delete-btn-cancel">Cancel</button>
+                <button type="submit" class="auth-btn btn-shimmer" style="width: auto; padding: 10px 24px; font-weight: 600; font-size: 0.95rem; border-radius: 10px; color: white; border: none; cursor: pointer;">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     CONFIRM DELETE MODAL
+═══════════════════════════════════════════ -->
+<div id="delete-modal" class="delete-modal-overlay" style="display:none;">
+    <div class="delete-modal-box">
+        <div class="delete-modal-icon"><i class="fa-solid fa-trash-can"></i></div>
+        <h3>Delete Song?</h3>
+        <p>This will permanently remove the song and all its play history. This cannot be undone.</p>
+        <div class="delete-modal-actions">
+            <button id="delete-cancel-btn" class="delete-btn-cancel">Cancel</button>
+            <button id="delete-confirm-btn" class="delete-btn-confirm">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     DELETE ACCOUNT MODAL
+═══════════════════════════════════════════ -->
+<div id="delete-account-modal" class="delete-modal-overlay" style="display:none; z-index: 1000;">
+    <div class="delete-modal-box">
+        <div class="delete-modal-icon"><i class="fa-solid fa-user-xmark"></i></div>
+        <h3>Delete Account?</h3>
+        <p>This will permanently remove your account, all the songs you uploaded globally, your playlists, and your liked history. <strong>This action cannot be undone.</strong></p>
+        <form method="POST" action="/delete_account" style="margin-top: 1.5rem;">
+            <div class="delete-modal-actions">
+                <button type="button" onclick="let m = document.getElementById('delete-account-modal'); m.classList.remove('active'); setTimeout(() => m.style.display='none', 300);" class="delete-btn-cancel">Cancel</button>
+                <button type="submit" class="delete-btn-confirm">Permanently Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Music Data -->
+<script id="music-data" type="application/json">{{ music_data | tojson | safe }}</script>
+<script>window.MUSIC_DATA = JSON.parse(document.getElementById('music-data').textContent);</script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endblock %}

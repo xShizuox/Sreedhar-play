@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card glass-panel">
+        <h2>Set New <span class="gradient-text">Password</span></h2>
+        <p class="auth-subtitle">Create a secure password for your account.</p>
+        <form method="POST" action="">
+            <div class="input-group">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" name="password" placeholder="New Password" required>
+            </div>
+            <div class="input-group">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" name="confirm_password" placeholder="Confirm New Password" required>
+            </div>
+            <button type="submit" class="auth-btn">Update Password</button>
+        </form>
+        <p class="auth-footer">Changed your mind? <a href="{{ url_for('login') }}">Cancel</a></p>
+    </div>
+</div>
+{% endblock %}

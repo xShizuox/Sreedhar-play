@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="profile-header">
+    <div class="profile-hero glass-panel" style="justify-content: center; text-align: center; padding: 3rem;">
+        <div class="profile-identity"
+            style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem; width: 100%;">
+            <div class="profile-avatar-wrapper"
+                style="width: 150px; height: 150px; margin: 0 auto; border: 3px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+                <img src="{{ url_for('static', filename='profile_pics/' + user.image_file) }}" alt="Profile Avatar"
+                    class="profile-avatar-img" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div class="profile-details" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <h2
+                    style="font-size: 2.5rem; margin: 0; background: linear-gradient(135deg, #fff, #a8c0ff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;">
+                    {{ user.username }}</h2>
+                {% if user.bio %}
+                <p style="margin: 0.5rem 0 0 0; color: rgba(255,255,255,0.7); font-size: 0.95rem; max-width: 500px; text-align: center; line-height: 1.5;">{{ user.bio }}</p>
+                {% endif %}
+                <div class="social-stats" style="display: flex; gap: 20px; justify-content: center; margin-top: 15px;">
+                    <span class="social-stat"><strong id="follower-count">{{ user.followers|length }}</strong> <span style="color: var(--text-muted); font-size: 0.85rem;">Followers</span></span>
+                    <span class="social-stat"><strong id="following-count">{{ user.following|length }}</strong> <span style="color: var(--text-muted); font-size: 0.85rem;">Following</span></span>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px;">
+                    <span class="upload-count"
+                        style="font-size: 1.1rem; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 20px;">{{
+                        songs|length }} Songs Uploaded</span>
+                    {% if current_user.is_authenticated and current_user.id != user.id %}
+                    <button id="follow-btn" data-user-id="{{ user.id }}" class="follow-btn glass-panel {% if is_following %}following{% endif %}">
+                        {% if is_following %}Following{% else %}Follow{% endif %}
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-header" style="margin-top: 3rem; text-align: center;">
+    <h2><span class="gradient-text">Tracks</span></h2>
+</div>
+
+<div class="glass-container">
+    <div class="songs-grid">
+        {% for song in songs %}
+        <div class="song-card" 
+             data-index="{{ loop.index0 }}"
+             data-song-id="{{ song.id }}"
+             data-title="{{ song.title | lower }}"
+             data-artist="{{ song.artist | lower }}">
+            <div class="cover-wrapper">
+                <img src="{{ url_for('static', filename='cover_art/' + song.cover_image) }}" alt="Cover Art">
+                <div class="play-overlay">
+                    <button class="play-mini-btn" title="Play Now"><i class="fa-solid fa-play"></i></button>
+                    <button class="queue-add-btn" title="Add to Queue" data-index="{{ loop.index0 }}"><i class="fa-solid fa-plus"></i></button>
+                    <button class="playlist-add-btn" title="Add to Playlist" data-song-id="{{ song.id }}"><i class="fa-solid fa-list-check"></i></button>
+                    <button class="card-like-btn" title="Like Song" data-index="{{ loop.index0 }}">
+                        <i class="{% if music_data[loop.index0]['is_liked'] %}fa-solid fa-heart liked{% else %}fa-regular fa-heart{% endif %}"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="song-info">
+                <h3>{{ song.title }}</h3>
+                <p>{{ song.artist }}</p>
+                <small>By <a href="{{ url_for('user_profile', username=song.uploader.username) }}" class="uploader-link">{{ song.uploader.username }}</a>
+                    <span class="card-badges">
+                        <span class="play-count-badge"><i class="fa-solid fa-play"></i> {{ music_data[loop.index0]['play_count'] }}</span>
+                        <span class="quality-badge">{{ song.quality }}</span>
+                    </span>
+                </small>
+            </div>
+        </div>
+        {% else %}
+        <div class="no-songs" style="text-align: center; width: 100%; grid-column: 1 / -1; padding: 3rem 0;">
+            <i class="fa-solid fa-compact-disc fa-3x" style="opacity: 0.5; margin-bottom: 1rem;"></i>
+            <p style="color: var(--text-muted);">This creator hasn't uploaded any music yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PLAYLISTS SECTION
+     (Same folder style as profile.html)
+═══════════════════════════════════════════ -->
+<div class="dashboard-header" style="margin-top: 3rem; text-align: center;">
+    <h2><span class="gradient-text">Playlists</span></h2>
+</div>
+
+<div class="library-section" style="padding-bottom: 5rem;">
+    <div class="library-folders" style="justify-content: center; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+        {% for pl in user_playlists %}
+        <button class="folder-card folder-playlist" data-playlist-id="{{ pl.id }}">
+            <div class="folder-icon-wrap folder-icon">
+                {% if pl.cover_image %}
+                <img src="{{ url_for('static', filename='cover_art/' + pl.cover_image) }}" class="playlist-single-cover" alt="">
+                {% elif pl.songs|length >= 4 %}
+                <div class="playlist-collage">
+                    {% for s in pl.songs[:4] %}
+                    <img src="{{ url_for('static', filename='cover_art/' + s.cover_image) }}" alt="">
+                    {% endfor %}
+                </div>
+                {% elif pl.songs|length > 0 %}
+                <img src="{{ url_for('static', filename='cover_art/' + pl.songs[0].cover_image) }}" class="playlist-single-cover" alt="">
+                {% else %}
+                <i class="fa-solid fa-list-ul"></i>
+                {% endif %}
+            </div>
+            <div class="folder-meta">
+                <span class="folder-name">{{ pl.name }}</span>
+                <span class="folder-count">{{ pl.songs|length }} song{{ 's' if pl.songs|length != 1 }}</span>
+            </div>
+            <i class="fa-solid fa-chevron-right folder-chevron"></i>
+        </button>
+        {% else %}
+        <div class="no-songs" style="text-align: center; width: 100%; grid-column: 1 / -1; padding: 2rem 0; opacity: 0.6;">
+            <p>No public playlists yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Panel: Playlist Details (Dynamic) -->
+<div class="track-panel" id="panel-playlist-detail">
+    <div class="track-panel-header">
+        <span class="track-panel-title" id="playlist-detail-title"><i class="fa-solid fa-list-ul"></i> Playlist</span>
+        <button class="track-panel-close" data-panel="panel-playlist-detail"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="playlist-detail-content" class="track-list">
+        <!-- Songs populated via JS -->
+    </div>
+    <div id="playlist-detail-empty" class="track-empty" style="display:none;">
+        <i class="fa-solid fa-folder-open fa-2x"></i>
+        <p>This playlist is empty.</p>
+    </div>
+</div>
+
+<script id="music-data" type="application/json">
+    {{ music_data | tojson | safe }}
+</script>
+<script>
+    // System SPA Audio Hydration Engine Mapping
+    window.MUSIC_DATA = JSON.parse(document.getElementById('music-data').textContent);
+</script>
+{% endblock %}

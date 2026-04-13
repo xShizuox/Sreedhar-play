@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card glass-panel upload-card-premium">
+        <h2>Magic <span class="gradient-text">Upload</span></h2>
+        <p class="upload-subtitle">Drop your tracks into the studio.</p>
+
+        <form id="upload_form" method="POST" action="" enctype="multipart/form-data">
+            <!-- Metadata Section -->
+            <div class="metadata-grid">
+                <div class="input-group-premium">
+                    <i class="fa-solid fa-music"></i>
+                    <input type="text" name="title" placeholder="Song Title" required>
+                </div>
+                <div class="input-group-premium">
+                    <i class="fa-solid fa-microphone"></i>
+                    <input type="text" name="artist" placeholder="Artist Name" required>
+                </div>
+            </div>
+
+            <!-- Quality Selector -->
+            <div class="input-group-premium full-width">
+                <i class="fa-solid fa-sliders"></i>
+                <select name="quality" required class="glass-select">
+                    <option value="128kbps">Standard Quality (128kbps)</option>
+                    <option value="256kbps">High Quality (256kbps)</option>
+                    <option value="320kbps" selected>Premium Quality (320kbps)</option>
+                    <option value="Lossless">Lossless / Studio Master</option>
+                </select>
+            </div>
+
+            <!-- Interactive File Zones -->
+            <div class="upload-zones-row">
+                <!-- Music Upload Zone -->
+                <div id="music_zone" class="drop-zone music-drop-zone">
+                    <div class="drop-zone-content">
+                        <i class="fa-solid fa-cloud-arrow-up main-drop-icon"></i>
+                        <span class="file-label">Drop Audio or Click</span>
+                        <div id="music_pulse" class="upload-pulse"></div>
+                    </div>
+                    <input type="file" name="music_file" id="music_file" accept=".mp3, .wav, .ogg, .m4a, .mp4, .flac, .aac, .wma, .webm" required class="hidden-input">
+                </div>
+
+                <!-- Cover Art Drop Zone + Vinyl Preview -->
+                <div id="cover_zone" class="drop-zone cover-drop-zone">
+                    <div class="vinyl-container">
+                        <div class="vinyl-card">
+                            <img id="cover_preview" src="{{ url_for('static', filename='cover_art/default_cover.png') }}" class="album-art-preview">
+                            <div class="vinyl-center"></div>
+                        </div>
+                    </div>
+                    <div class="drop-zone-content">
+                        <i class="fa-solid fa-image main-drop-icon"></i>
+                        <span class="file-label">Cover Art (Optional)</span>
+                    </div>
+                    <input type="file" name="cover_file" id="cover_file" accept="image/*" class="hidden-input">
+                </div>
+            </div>
+
+            <!-- Progress & Actions -->
+            <div class="upload-progress-container">
+                <div class="progress-bar-bg">
+                    <div id="upload_progress_bar" class="progress-bar-fill"></div>
+                </div>
+                <span id="progress_text">Uploading: 0%</span>
+            </div>
+
+            <button type="submit" class="auth-btn-premium"><i class="fa-solid fa-bolt"></i> Finalize & Launch</button>
+        </form>
+    </div>
+</div>
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+<script src="{{ url_for('static', filename='js/upload_ui.js') }}"></script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card glass-panel">
+        <h2>Welcome Back to <span class="gradient-text">Sreedhar Play</span></h2>
+        <form method="POST" action="">
+            <div class="input-group">
+                <i class="fa-solid fa-envelope"></i>
+                <input type="email" name="email" placeholder="Email Address" required>
+            </div>
+            <div class="input-group">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" name="password" placeholder="Password" required>
+            </div>
+            <div style="text-align: right; margin-top: -0.5rem; margin-bottom: 1rem;">
+                <a href="{{ url_for('reset_request') }}" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">Forgot Password?</a>
+            </div>
+            <button type="submit" class="auth-btn">Log In</button>
+        </form>
+        <p class="auth-footer">Don't have an account? <a href="{{ url_for('signup') }}">Sign Up</a></p>
+    </div>
+</div>
+{% endblock %}

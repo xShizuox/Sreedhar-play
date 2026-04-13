@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title if title else 'Sreedhar Play' }}</title>
+    <!-- Eighth note favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%238b5cf6' d='M499.1 6.3c8.1 6 12.9 15.6 12.9 25.7L512 224c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-160.8-320 64L128 384c0 53-43 96-96 96s-96-43-96-96s43-96 96-96c14.2 0 27.6 3.1 39.8 8.6L96 112c0-13.6 8.7-25.5 21.6-29.8C127.3 80.7 203.2 56 295.5 28.3C363.3 8.3 417.4-4.2 461.3 1.4c21.8 2.8 38.4 12.9 45.4 18.5c1.4 1.1 2.8 2.3 4.2 3.6c-4.2-3.6-8.5-7.5-11.8-10.2z'/%3E%3C/svg%3E">
+    <!-- Google Fonts for Modern Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Standard CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#8b5cf6">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js')
+                .then(reg => console.log('Service Worker registered:', reg))
+                .catch(err => console.error('Service Worker registration failed:', err));
+            });
+        }
+    </script>
+</head>
+<body>
+    <!-- Global Animated Background -->
+    <div class="global-background-blobs">
+        <div class="global-blob global-blob1"></div>
+        <div class="global-blob global-blob2"></div>
+        <div class="global-blob global-blob3"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Floating Aceternity Dock -->
+        <nav class="aceternity-dock">
+            <!-- Brand Logo Item -->
+            <a href="{{ url_for('landing') }}" class="dock-item">
+                <span class="dock-tooltip" style="font-size: 1.1rem; color: var(--accent);">Sreedhar Play</span>
+                <div class="dock-icon-wrapper" style="background: rgba(139, 92, 246, 0.2); color: var(--accent);">
+                    <i class="fa-solid fa-music"></i>
+                </div>
+            </a>
+            <!-- Divider -->
+            <div style="width: 2px; height: 35px; background: var(--glass-border); border-radius: 2px; margin: 0 8px;"></div>
+            
+            <a href="{{ url_for('home') }}" class="dock-item {{ 'active' if request.endpoint == 'home' else '' }}">
+                <span class="dock-tooltip">Home</span>
+                <div class="dock-icon-wrapper">
+                    <i class="fa-solid fa-house"></i>
+                </div>
+            </a>
+            
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('profile') }}" class="dock-item {{ 'active' if request.endpoint == 'profile' else '' }}">
+                <span class="dock-tooltip">Profile</span>
+                <div class="dock-icon-wrapper" style="overflow: hidden; padding: 3px;">
+                    <!-- Directly render the user's avatar image as the icon -->
+                    <img src="{{ url_for('static', filename='profile_pics/' + current_user.image_file) }}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                </div>
+            </a>
+            <a href="{{ url_for('upload_song') }}" class="dock-item {{ 'active' if request.endpoint == 'upload_song' else '' }}">
+                <span class="dock-tooltip">Upload</span>
+                <div class="dock-icon-wrapper">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+            </a>
+            {% if current_user.songs %}
+            <a href="{{ url_for('dashboard') }}" class="dock-item {{ 'active' if request.endpoint == 'dashboard' else '' }}">
+                <span class="dock-tooltip">Dashboard</span>
+                <div class="dock-icon-wrapper" style="background: rgba(139, 92, 246, 0.2); color: var(--accent);">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+            </a>
+            {% endif %}
+            <a href="{{ url_for('logout') }}" class="dock-item">
+                <span class="dock-tooltip">Logout</span>
+                <div class="dock-icon-wrapper">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </div>
+            </a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="dock-item {{ 'active' if request.endpoint == 'login' else '' }}">
+                <span class="dock-tooltip">Login</span>
+                <div class="dock-icon-wrapper">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                </div>
+            </a>
+            <a href="{{ url_for('signup') }}" class="dock-item {{ 'active' if request.endpoint == 'signup' else '' }}">
+                <span class="dock-tooltip">Sign Up</span>
+                <div class="dock-icon-wrapper">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+            </a>
+            {% endif %}
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-area">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+        
+        <!-- Expanded Full-Screen Player -->
+        <div id="expanded-player" class="expanded-player">
+            <div class="expanded-overlay-glass"></div>
+            
+            <button id="minimize-btn" class="minimize-btn"><i class="fa-solid fa-chevron-down"></i></button>
+            
+            <div class="expanded-content">
+                <!-- Left Panel: Cover & Controls -->
+                <div class="expanded-left-panel">
+                    <div class="expanded-cover">
+                        <img id="expanded-cover-img" src="" alt="Album Art">
+                    </div>
+                    <div class="expanded-info">
+                        <h2 id="expanded-title">Track Title</h2>
+                        <div class="expanded-artist-row">
+                            <h3 id="expanded-artist">Artist</h3>
+                            <button class="global-like-btn" id="btn-expanded-like">
+                                <i class="fa-regular fa-heart shadow-heart"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="expanded-waveform-outer">
+                        <canvas id="waveform-expanded"></canvas>
+                    </div>
+
+                    <div class="expanded-progress">
+                        <span id="expanded-time-current">0:00</span>
+                        <input type="range" id="expanded-progress-bar" value="0" step="1" min="0">
+                        <span id="expanded-time-total">0:00</span>
+                    </div>
+                    <div class="expanded-controls">
+                        <button id="expanded-shuffle" class="control-secondary"><i class="fa-solid fa-shuffle fa-lg"></i></button>
+                        <button id="expanded-prev"><i class="fa-solid fa-backward-step fa-2x"></i></button>
+                        <button id="expanded-play" class="main-play-btn"><i class="fa-solid fa-play fa-2x" id="expanded-play-icon"></i></button>
+                        <button id="expanded-next"><i class="fa-solid fa-forward-step fa-2x"></i></button>
+                        <button id="expanded-repeat" class="control-secondary"><i class="fa-solid fa-repeat fa-lg"></i></button>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Lyrics -->
+                <div class="expanded-lyrics-panel" id="expanded-lyrics-panel">
+                    <div class="lyrics-container" id="lyrics-container">
+                        <div class="lyric-line placeholder">♫ Music Playing...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audio Player Footer -->
+        <footer class="player-bar" id="player-bar">
+            <div class="now-playing">
+                <img id="player-cover" src="" alt="Cover Art">
+                <div class="track-info">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <h4 id="player-title">Track Title</h4>
+                        <canvas id="waveform-mini" width="40" height="20" style="opacity: 0.6; pointer-events: none;"></canvas>
+                    </div>
+                    <p id="player-artist">Artist Name</p>
+                </div>
+                <button class="global-like-btn" id="btn-main-like" style="background:none; border:none; padding-left:15px; cursor:pointer;"><i class="fa-regular fa-heart fa-lg shadow-heart"></i></button>
+            </div>
+            
+            <div class="player-controls">
+                <div class="controls-buttons">
+                    <button id="btn-shuffle" class="control-secondary"><i class="fa-solid fa-shuffle"></i></button>
+                    <button id="btn-prev"><i class="fa-solid fa-backward-step"></i></button>
+                    <button class="play-btn" id="btn-play-pause"><i class="fa-solid fa-play" id="play-icon"></i></button>
+                    <button id="btn-next"><i class="fa-solid fa-forward-step"></i></button>
+                    <button id="btn-repeat" class="control-secondary"><i class="fa-solid fa-repeat"></i></button>
+                </div>
+                <div class="progress-container">
+                    <span id="time-current">0:00</span>
+                    <input type="range" id="progress-bar" value="0" step="1" min="0">
+                    <span id="time-total">0:00</span>
+                </div>
+            </div>
+
+            <div class="player-actions" style="display: flex; align-items: center; gap: 20px;">
+                <button id="btn-expand-player" class="control-secondary" title="Expand Player" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.1rem; transition:color 0.2s;"><i class="fa-solid fa-expand"></i></button>
+                <button id="btn-queue-toggle" class="control-secondary" title="View Queue" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; transition: color 0.2s;"><i class="fa-solid fa-list-ul"></i></button>
+                <div class="player-volume">
+                    <i class="fa-solid fa-volume-high" id="volume-icon"></i>
+                    <input type="range" id="volume-bar" value="100" min="0" max="100" style="--volume-fill: 100%;">
+                </div>
+            </div>
+            
+            <audio id="audio-player"></audio>
+        </footer>
+        
+        <!-- Queue Glass Sidebar -->
+        <aside id="queue-tray" class="queue-tray-glass">
+            <div class="queue-header">
+                <h3>Up Next</h3>
+                <button id="btn-clear-queue">Clear</button>
+            </div>
+            <ul id="queue-list" class="queue-list">
+                <!-- Queue items generated via JS -->
+            </ul>
+        </aside>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         PLAYLIST MODALS (GLOBAL)
+    ═══════════════════════════════════════════ -->
+    
+    <!-- Modal: Add to Playlist -->
+    <div id="add-to-playlist-modal" class="playlist-modal-overlay" style="display:none;">
+        <div class="playlist-modal-box glass-panel">
+            <div class="modal-header">
+                <h3>Add to Playlist</h3>
+                <button class="modal-close-btn" id="hide-add-to-playlist"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="playlist-selection-list" id="playlist-options-list">
+                <!-- Playlists populated via JS -->
+            </div>
+            <div class="modal-footer">
+                <button id="btn-show-create-playlist" class="modal-action-btn"><i class="fa-solid fa-plus"></i> Create New Playlist</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Create New Playlist -->
+    <div id="create-playlist-modal" class="playlist-modal-overlay" style="display:none; z-index: 2001;">
+        <div class="playlist-modal-box glass-panel">
+            <div class="modal-header">
+                <h3>New Playlist</h3>
+                <button class="modal-close-btn" id="hide-create-playlist"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem;">
+                <div class="input-group">
+                    <label for="new-playlist-name">Playlist Name</label>
+                    <input type="text" id="new-playlist-name" placeholder="My Awesome Mix" class="glass-input">
+                </div>
+                <div class="input-group">
+                    <label for="new-playlist-cover">Cover Image (Optional)</label>
+                    <input type="file" id="new-playlist-cover" accept="image/*" class="glass-input" style="padding: 10px;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-submit-create-playlist" class="modal-confirm-btn">Create Playlist</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Scripts -->
+    <script src="{{ url_for('static', filename='js/dock.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/shortcuts.js') }}"></script>
+    <!-- Page Specific Scripts -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>
