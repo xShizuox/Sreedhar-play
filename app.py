@@ -5,6 +5,8 @@ from flask import Flask, render_template, url_for, flash, redirect, request, sen
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
 from flask_mail import Mail, Message
+from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 from models import db, User, Song, PlayHistory, Like, Playlist, Follow
 
 load_dotenv()
@@ -30,6 +32,10 @@ mail = Mail(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
+
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'super-secret-jwt-key')
+CORS(app)
+jwt = JWTManager(app)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -627,6 +633,9 @@ def delete_account():
     logout_user()
     flash('Your account and all associated songs, interactions, and playlists have been permanently deleted.', 'info')
     return redirect(url_for('login'))
+
+from api import api_bp
+app.register_blueprint(api_bp)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
