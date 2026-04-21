@@ -65,11 +65,10 @@ def serialize_songs(songs, user):
             'id': s.id,
             'title': s.title,
             'artist': s.artist,
-            'file': url_for('static', filename='music/' + s.file_path),
-            'cover': url_for('static', filename='cover_art/' + s.cover_image),
+            'file': url_for('static', filename='music/' + s.file_path, _external=True),
+            'cover': url_for('static', filename='cover_art/' + s.cover_image, _external=True),
             'is_liked': s.id in liked_ids,
             'play_count': play_counts.get(s.id, 0),
-            'lyrics': s.lyrics
         })
     return music_data
 
@@ -293,20 +292,6 @@ def delete_song(song_id):
     return {'status': 'success'}
 
 
-@app.route("/api/update_lyrics/<int:song_id>", methods=['POST'])
-@login_required
-def update_lyrics(song_id):
-    song = Song.query.get_or_404(song_id)
-    if song.user_id != current_user.id:
-        return {'status': 'error', 'message': 'Unauthorized'}, 403
-    
-    # We will accept JSON body for lyrics updates
-    data = request.get_json()
-    lyrics = data.get('lyrics', '') if data else request.form.get('lyrics', '')
-    
-    song.lyrics = lyrics
-    db.session.commit()
-    return {'status': 'success', 'message': 'Lyrics updated successfully!'}
 
 
 @app.route("/api/toggle_like/<int:song_id>", methods=['POST'])
@@ -638,4 +623,4 @@ from api import api_bp
 app.register_blueprint(api_bp)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(host='0.0.0.0', debug=True, port=5000)

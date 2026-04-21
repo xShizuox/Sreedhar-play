@@ -16,6 +16,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(60), nullable=False)
     songs = db.relationship('Song', backref='uploader', lazy=True)
     likes = db.relationship('Like', backref='user', lazy=True)
+    comments = db.relationship('Comment', backref='author', lazy=True)
     # Social relationships
     following = db.relationship('Follow', foreign_keys='Follow.follower_id', backref='follower_user', lazy=True)
     followers = db.relationship('Follow', foreign_keys='Follow.followed_id', backref='followed_user', lazy=True)
@@ -73,7 +74,6 @@ class Song(db.Model):
     file_path = db.Column(db.String(200), nullable=False)
     cover_image = db.Column(db.String(200), nullable=False, default='default_cover.png')
     quality = db.Column(db.String(20), nullable=False, default='320kbps')
-    lyrics = db.Column(db.Text, nullable=True)
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     __table_args__ = {'extend_existing': True}
@@ -95,3 +95,13 @@ class Like(db.Model):
     __table_args__ = {'extend_existing': True}
     
     song = db.relationship('Song')
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    song_id = db.Column(db.Integer, db.ForeignKey('song.id'), nullable=False)
+    content = db.Column(db.String(500), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    __table_args__ = {'extend_existing': True}
+    
+    song = db.relationship('Song', backref=db.backref('comments', lazy=True))
